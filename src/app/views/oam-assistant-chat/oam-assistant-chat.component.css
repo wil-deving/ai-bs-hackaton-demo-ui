@@ -1,0 +1,9 @@
+.example-button-row button,
+.example-button-row a {
+  margin-right: 8px;
+}
+
+.custom-font {
+  font-family: "Laila", sans-serif;
+  /* Agrega cualquier otro estilo que desees */
+}
