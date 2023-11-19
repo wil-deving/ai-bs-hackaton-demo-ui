@@ -119,8 +119,8 @@
                   </p>
                 </mat-card-content>
                 <mat-card-actions>
-                  <button mat-button>Reporducir</button>
-                  <button mat-button>Pause</button>
+                  <button mat-button><mat-icon>play_arrow</mat-icon></button>
+                  <button mat-button><mat-icon>pause</mat-icon></button>
                 </mat-card-actions>
               </mat-card>
             </div>
@@ -128,6 +128,7 @@
         </div>
         <div class="section2">
           <!-- Contenido de la sección 2 -->
+
           <div class="parent-container">
             <form
               [formGroup]="MessageFieldsform"
@@ -160,6 +161,10 @@
             >
               <mat-icon>send</mat-icon>
             </button>
+            <audio id="audioPlayer" controls>
+              <source type="audio/mp3" />
+              Tu navegador no soporta la etiqueta de audio.
+            </audio>
           </div>
         </div>
       </div>
