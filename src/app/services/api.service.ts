@@ -21,6 +21,18 @@ export class ApiService {
     return this.http.post<any>(sendMessagePath, parameters, requestOptions);
   }
 
+  text2Voice(parameters: any): Observable<any> {
+    const sendMessagePath = `http://172.0.10.39:9096/ocr/dev`;
+    console.log('DEV', sendMessagePath);
+    console.log('DEV2', parameters);
+
+    const headers = new HttpHeaders({
+      'Access-Control-Allow-Origin': '*',
+    });
+    const requestOptions = { headers: headers };
+    return this.http.post<any>(sendMessagePath, parameters, requestOptions);
+  }
+
   getInsuredData(parameters: any): Observable<any> {
     const sendMessagePath = `${this.BASE_URL}/health/policy?documentId=${parameters.docNo}`;
 

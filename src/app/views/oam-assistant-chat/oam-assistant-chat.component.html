@@ -91,7 +91,7 @@
       <div class="container">
         <div class="section1">
           <!-- Contenido de la sección 1 -->
-          <div style="height: 10000px">
+          <div style="height: 15000px">
             <div>
               <mat-card
                 *ngFor="let message of messageHistory"
@@ -126,7 +126,11 @@
             </div>
           </div>
         </div>
+
         <div class="section2">
+          <h3 class="spinner" *ngIf="isLoding">
+            Bisa Seguros está escribiendo...
+          </h3>
           <!-- Contenido de la sección 2 -->
 
           <div class="parent-container">
@@ -146,13 +150,16 @@
             </form>
 
             <button
+              id="startRecording"
               class="btn-row-container"
-              (click)="recordAudio()"
+              (mousedown)="recordAudio()"
               mat-fab
               aria-label="Example icon-button with a heart icon"
+              [disabled]="isRecording"
             >
               <mat-icon>mic</mat-icon>
             </button>
+
             <button
               class="btn-row-container"
               (click)="onSubmitChatMessage()"

@@ -30,6 +30,7 @@ export interface MessageHistory {
   styleUrls: ['./oam-assistant-chat.component.css'],
 })
 export class OamAssistantChatComponent implements OnInit {
+  /*
   messageHistory: MessageHistory[] = [
     {
       id: 1,
@@ -48,10 +49,12 @@ export class OamAssistantChatComponent implements OnInit {
       isUser: false,
     },
   ];
+  */
 
-  //messageHistory: MessageHistory[] = [];
+  messageHistory: MessageHistory[] = [];
 
-  isUserKnoww: boolean = true;
+  isUserKnoww: boolean = false;
+  isLoding: boolean = false;
   MessageFieldsform: FormGroup;
   StartFieldsform: FormGroup;
   textMessage = new FormControl('', Validators.required);
@@ -67,12 +70,9 @@ export class OamAssistantChatComponent implements OnInit {
   isVoice: boolean = false;
   globalAudioChunks: any[] = [];
   globalMediaRecorder: MediaRecorder | null = null;
+  isRecording: boolean = false;
 
   // Data reproduccion audio
-  filePath: any = 'D:/tmp1/test1.mp3';
-
-  rutaArchivo = 'src/app/components/views/oam-assitant-chat/b64.txt';
-
   jsonData: any = data;
 
   constructor(
@@ -81,8 +81,6 @@ export class OamAssistantChatComponent implements OnInit {
     private _sanitizer: DomSanitizer,
     private http: HttpClient
   ) {
-    this.filePath =
-      this._sanitizer.bypassSecurityTrustResourceUrl('D:/tmp1/test1.mp3');
     console.log('text Form');
     this.MessageFieldsform = this.formBuilder.group(
       {
@@ -104,13 +102,26 @@ export class OamAssistantChatComponent implements OnInit {
 
   ngOnInit(): void {
     // Puedes acceder a tu data JSON aquí
-    console.log(this.jsonData.content);
-    /*
-    this.http
-      .get(this.rutaArchivo, { responseType: 'text' })
-      .subscribe((data) => {
-        console.log('DATA', data);
-      });*/
+    //console.log(this.jsonData.content);
+  }
+
+  onSubmitStartForm() {
+    const parameters = { ...this.StartFieldsform.value };
+    console.log('Form Fields', parameters.docNo);
+
+    this.apiService.getInsuredData(parameters).subscribe((data) => {
+      console.log('DEV2', data);
+      if (data.policyNo) {
+        this.isUserKnoww = true;
+        this.user = data.fullName;
+        this.policyNo = data.policyNo;
+        window.alert(
+          `Hola ${data.fullName}! ya puedes chatear con el asistente inteligente`
+        );
+      } else {
+        window.alert('No encontre una poliza registrada para tu carnet.');
+      }
+    });
   }
 
   onSubmitChatMessage() {
@@ -135,104 +146,130 @@ export class OamAssistantChatComponent implements OnInit {
 
       this.messageHistory.push(userNewMessage);
       this.textMessage.setValue('');
+      this.isLoding = true;
 
-      this.filePath =
-        this._sanitizer.bypassSecurityTrustResourceUrl('D:/tmp1/test1.mp3');
-
-      //this.filePath = this.filePath + 'test1.mp3';
-
-      console.log('DEV', this.filePath);
-
-      console.log(this.jsonData.content);
-
-      const decodedData = atob(this.jsonData.content);
-
-      // Convertir la cadena decodificada en un array de bytes
-      const byteArray = new Uint8Array(decodedData.length);
-      for (let i = 0; i < decodedData.length; i++) {
-        byteArray[i] = decodedData.charCodeAt(i);
-      }
-
-      // Crear un Blob con el array de bytes y el tipo de archivo
-      const blob = new Blob([byteArray], { type: 'audio/mp3' });
-
-      // Puedes ahora usar el objeto Blob según tus necesidades
-      console.log(blob);
-
-      const audioPlayer = document.getElementById(
-        'audioPlayer'
-      ) as HTMLAudioElement;
-      audioPlayer.src = URL.createObjectURL(blob);
-
-      audioPlayer.play();
-
-      /*
       this.apiService.sendMessage(parameters).subscribe((data) => {
         console.log('DEV', data);
 
-        const userNewMessage = {
+        let textWorked = data.content + '';
+        const finalText = textWorked.replace('PDF', 'Contrato');
+
+        const bisaNewMessage = {
           id: this.messageHistory.length + 1,
           owner: 'Bisa Seguros',
           time: `Enviado ${this.getCurrentDate()}`,
-          message: data.content,
+          message: finalText,
           order: this.messageHistory.length + 1,
           isUser: false,
         };
 
-        this.filePath = this.filePath + 'test1.mp3';
+        this.messageHistory.push(bisaNewMessage);
 
-        this.messageHistory.push(userNewMessage);
+        const parameterAudio = {
+          b64mp3: finalText,
+        };
+        this.apiService.text2Voice(parameterAudio).subscribe((data2) => {
+          console.log('DEV2', data2.b64mp3);
+          this.isLoding = false;
+
+          // audio
+          const decodedData = atob(data2.b64mp3);
+          // Convertir la cadena decodificada en un array de bytes
+          const byteArray = new Uint8Array(decodedData.length);
+          for (let i = 0; i < decodedData.length; i++) {
+            byteArray[i] = decodedData.charCodeAt(i);
+          }
+          // Crear un Blob con el array de bytes y el tipo de archivo
+          const blob = new Blob([byteArray], { type: 'audio/mp3' });
+
+          // Puedes ahora usar el objeto Blob según tus necesidades
+          console.log(blob);
+
+          const audioPlayer = document.getElementById(
+            'audioPlayer'
+          ) as HTMLAudioElement;
+          audioPlayer.src = URL.createObjectURL(blob);
+          audioPlayer.play();
+        });
+
+        //this.messageHistory.push(userNewMessage);
       });
-      */
     }
   }
 
-  onSubmitStartForm() {
-    const parameters = { ...this.StartFieldsform.value };
-    console.log('Form Fields', parameters.docNo);
-
-    this.apiService.getInsuredData(parameters).subscribe((data) => {
-      console.log('DEV2', data);
-      if (data.policyNo) {
-        this.isUserKnoww = true;
-        this.user = data.fullName;
-        this.policyNo = data.policyNo;
-        window.alert(
-          `Hola ${data.fullName}! ya puedes chatear con el asistente inteligente`
-        );
-      } else {
-        window.alert('No encontre una poliza registrada para tu carnet.');
-      }
-    });
-  }
-
   recordAudio() {
+    console.log('DEV star recording');
     this.isVoice = true;
-    let mediaRecorder;
+    this.isRecording = true;
+    let mediaRecorder: any;
     let audioChunks: any = [];
-    let self = this;
 
-    self.globalMediaRecorder?.start();
+    const startRecordingButton = document.getElementById('startRecording');
+    //const stopRecordingButton = document.getElementById('stopRecording');
+    //const playRecordingButton = document.getElementById('playRecording');
+    //const downloadRecordingButton =
+    //document.getElementById('downloadRecording');
+    const audioPlayer = document.getElementById(
+      'audioPlayer'
+    ) as HTMLAudioElement;
 
     const constraints = { audio: true };
+
     navigator.mediaDevices
       .getUserMedia(constraints)
       .then((stream) => {
-        self.globalMediaRecorder = new MediaRecorder(stream);
-        //self.globalMediaRecorder.start();
-        self.globalMediaRecorder.ondataavailable = (event) => {
+        mediaRecorder = new MediaRecorder(stream);
+
+        mediaRecorder.ondataavailable = (event: any) => {
           console.log('DEV on event');
+
           if (event.data.size > 0) {
-            this.globalAudioChunks.push(event.data);
+            audioChunks.push(event.data);
           }
         };
-        self.globalMediaRecorder.onstop = () => {
-          console.log('onStop');
-          const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-          //audioPlayer.src = URL.createObjectURL(audioBlob);
+
+        mediaRecorder.onstop = () => {
+          console.log('DEV on stop');
+          //debugger;
+          const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+
+          const downloadLink = document.createElement('a');
+          downloadLink.href = URL.createObjectURL(audioBlob);
+          downloadLink.download = 'grabacion.mp3';
+          downloadLink.click();
+
+          audioPlayer.src = URL.createObjectURL(audioBlob);
           audioChunks = [];
         };
-        //self.globalMediaRecorder.start();
+
+        startRecordingButton!.addEventListener('mousedown', () => {
+          console.log('DEV on start');
+          mediaRecorder.start();
+        });
+
+        startRecordingButton!.addEventListener('mouseup', () => {
+          mediaRecorder.stop();
+        });
+
+        /*
+        playRecordingButton.addEventListener('click', () => {
+          audioPlayer.play();
+        });
+
+        downloadRecordingButton.addEventListener('click', () => {
+          downloadRecording();
+        });
+        */
+
+        function downloadRecording() {
+          debugger;
+          const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+
+          const downloadLink = document.createElement('a');
+          downloadLink.href = URL.createObjectURL(audioBlob);
+          downloadLink.download = 'grabacion.mp3';
+          downloadLink.click();
+        }
       })
       .catch((error) => {
         console.error('Error al obtener acceso al micrófono:', error);

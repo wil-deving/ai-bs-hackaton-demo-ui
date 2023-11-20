@@ -107,3 +107,11 @@
 .input-text {
   color: #e60d50;
 }
+
+.spinner {
+  color: #e60d50;
+}
+
+#audioPlayer {
+  background-color: red;
+}
